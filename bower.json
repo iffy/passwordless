@@ -1,0 +1,21 @@
+{
+  "name": "passwordless",
+  "version": "0.0.0",
+  "authors": [
+    "Matt Haggard <haggardii@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "ui-router": "~0.2.13",
+    "lodash": "~3.5.0",
+    "skeleton-css": "~2.0.4"
+  }
+}

@@ -1,0 +1,439 @@
+<!doctype>
+<html ng-app="signindemo">
+  <head>
+    <title></title>
+    <link href='http://fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="bower_components/skeleton-css/css/normalize.css">
+    <link rel="stylesheet" href="bower_components/skeleton-css/css/skeleton.css">
+    <style>
+    .drop-note {
+      font-weight: bold;
+      padding: 2rem 3rem;
+      color: #fff;
+      background-color: #08c;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+    }
+    .drop-note button {
+      background: #fff;
+    }
+    .main-container {
+      margin-top: 1rem;
+    }
+    .mailbox {
+      width: 20vw;
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      padding: 2rem;
+      border: 1px solid red;
+      border-width: 1px 0 0 1px;
+    }
+    .mailbox .message {
+      background-color: beige;
+      padding: 2rem;
+      margin-top: 1rem;
+    }
+    .mailbox .message .header {
+      font-size: 50%;
+    }
+    .modalish {
+      margin: 0 auto;
+      width: 50%;
+      padding: 2rem;
+      border-radius: 3px;
+      background: #eee;
+      box-shadow: 0px 1px 5px 1px rgba(0, 0, 0, 0.2);
+    }
+    h1.title {
+      text-align: center;
+    }
+    p.subtitle {
+      text-align: center;
+    }
+    .choices {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choices .choice {
+      padding: 2rem;
+      margin: 1rem;
+      width: 30rem;
+    }
+    .choices .choice button {
+      width: 100%;
+    }
+    .choices .choice.bordered {
+      border: 1px solid #999;
+      border-radius: 3px;
+    }
+    .note {
+      font-size: 90%;
+      color: #999;
+      text-align: center;
+    }
+    </style>
+  </head>
+  <body ng-controller="MainCtrl as main">
+    <div class="container main-container">
+      <ui-view></ui-view>
+    </div>
+
+    <div class="mailbox" ng-if="main.Data.email_messages.length">
+      Here's your email inbox for the purposes of this demo.  In real life, these would actually be emailed to you.
+      <div class="message" ng-repeat="message in main.Data.email_messages|limitTo:3">
+        <div class="header">
+          <div>To: {{ message.to_email }}</div>
+          <div>Subject: {{ message.subject }}</div>
+        </div>
+        <div ng-bind-html="message.body"></div>
+      </div>
+    </div>
+
+
+<template name="landing.html">
+  <h1 class="title">Welcome to a site</h1>
+
+  <div class="choices">
+    <div class="choice" ng-if="!main.Data.last_remembered">
+      <form ng-submit="main.signin(email)">
+        <div>
+          <label>Email address</label>
+          <input class="u-full-width" type="text" placeholder="test@example.com" ng-model="email">
+        </div>
+        <button type="submit" class="button-primary">Enter</button>
+      </form>
+    </div>
+
+    <div class="choice" ng-if="main.Data.last_remembered">
+      <div>
+        Welcome back, {{ main.Data.last_remembered.email }}!
+      </div>
+      <button class="button-primary" ng-click="main.signin(main.Data.last_remembered.email)">Enter</button>
+      <button ng-click="main.Data.last_remembered = null">I am someone else</button>
+    </div>
+
+    <div class="conjuction">
+      &mdash;OR&mdash;
+    </div>
+    
+    <div class="choice">
+      <p>
+        You can play with the sandbox to get a feel for how things work.  Anything you do in the sandbox will be lost after you close your browser.
+      </p>
+      <button ui-sref="sandbox">Play with the sandbox</button>
+    </div>
+
+  </div>
+</template>
+
+
+<template name="sandbox.html">
+  <h1 class="title">Sandbox</h1>
+  <p>You're in the sandbox.  From here you can <a ui-sref="landing">go back to the front page</a>.</p>
+
+  <p>
+    If you like using this product, save what you've done by signing up:
+  </p>
+  <label>Email address</label>
+  <input type="text" placeholder="test@example.com" ng-model="email">
+  
+  <button class="button-primary" ng-click="main.signin(email)">Sign up</button>
+</template>
+
+
+<template name="app.html">
+  <h1 class="title">App</h1>
+
+  <div class="drop-note" ng-if="main.Data.customer.verified_email && !main.Data.customer.has_password && (!main.tmp.dismissed && !main.Data.customer.rememberme)">
+    Do you want us to remember you on this computer?  (So you don't have to sign in next time you come?)
+    <div>
+      <button ng-click="main.Data.rememberCustomer(main.Data.customer)">Yes</button>
+      <button ng-click="main.tmp.dismissed=true">No</button>
+    </div>
+  </div>
+
+  <p>You are signed in as {{ main.Data.customer.email }}.  <a href ng-click="main.signout()">Sign out</a></p>
+  <p>
+
+  <p><a ui-sref="landing">Home</a></p>
+</template>
+
+
+<template name="signin_sent_email.html">
+  <h1 class="title">Welcome back!</h1>
+  <p class="subtitle">We sent an email to {{ main.Data.email }}</p>
+
+  <div class="choices">
+    <div class="choice bordered">
+      <p>Either click the link in the email and close this page.</p>
+    </div>
+    <div class="conjuction">
+      &mdash;OR&mdash;
+    </div>
+    <div class="choice bordered">
+      <p>Enter the token we emailed here:</p>
+      <label>Access Token</label>
+      <input type="text" ng-model="access_token" class="u-full-width">
+      <button class="button-primary" ui-sref="signin_with_token({token:access_token})">Sign in</button>    
+    </div>
+  </div> 
+
+  <p><a ui-sref="landing">Home</a></p>
+</template>
+
+<template name="signin_password_prompt.html">
+  <h1 class="title">Welcome back!</h1>
+
+  <form ng-submit="main.signinWithPassword(main.Data.email, password)">
+    <label>Password for {{ main.Data.email }}</label>
+    <input type="password" ng-model="password">
+    <button type="submit" class="button-primary">Enter</button>
+  </form>
+
+  <p><a ui-sref="landing">Home</a></p>
+</template>
+
+
+<template name="signin_setup.html">
+  <h1 class="title">How would you like to sign in in the future?</h1>
+
+  <div class="choices">
+    <div class="choice bordered">
+      <h4>Password-less</h4>
+      <p>
+        This is the method you just used.
+      </p>
+
+      <p>
+        With this method, attackers can only gain access to your account by gaining access to your email account.
+      </p>
+      
+      <button ng-click="main.chooseNoPassword()">Password-less</button>
+    </div>
+
+    <div class="conjunction">&mdash;OR&mdash;</div>
+
+    <div class="choice bordered">
+      <h4>With a password</h4>
+      <p>
+        This is the method you're probably used to.
+      </p>
+
+      <p>
+        With this method, attackers can gain access by guessing your password, compromising your computer (virus, theft, etc...) or by gaining access to your email account.
+      </p>
+      <label>Password</label>
+      <input class="u-full-width" type="password" ng-model="password">
+      <label>Re-type password</label>
+      <input class="u-full-width" type="password" ng-model="password2">
+      <button ng-click="main.setPassword(password)">Set password</button>
+    </div>
+  </div>
+
+  <p><a ui-sref="landing">Home</a></p>
+</template>
+
+<script src="bower_components/lodash/lodash.min.js"></script>
+<script src="bower_components/angular/angular.min.js"></script>
+<script src="bower_components/ui-router/release/angular-ui-router.min.js"></script>
+<script>
+var app = angular.module('signindemo', ['ui.router']);
+
+app.run(function($templateCache) {
+  // Load templates
+  _(document.getElementsByTagName('template'))
+    .each(function(elem) {
+      var name = elem.getAttribute('name');
+      $templateCache.put(name, elem.innerHTML);
+    })
+    .value()
+})
+
+app.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
+  $locationProvider.html5Mode(false).hashPrefix('');
+  $urlRouterProvider.otherwise('/landing');
+
+  var requireAuthed = {
+    controller: function($state, Data) {
+      if (!Data.customer) {
+        $state.go('landing');
+      }
+    }
+  }
+
+  $stateProvider
+    .state('landing', {
+      url: '/landing',
+      templateUrl: 'landing.html',
+    })
+    .state('sandbox', {
+      url: '/sandbox',
+      templateUrl: 'sandbox.html',
+    })
+    .state('signin_sent_email', {
+      url: '/signin/sent_email',
+      templateUrl: 'signin_sent_email.html',
+      resolve: {
+        controller: function($state, Data) {
+          console.log('Data.email_messages', Data.email_messages);
+          if (!Data.email_messages.length) {
+            console.log('going to landing');
+            $state.go('landing');
+          }
+        }
+      }
+    })
+    .state('signin_password_prompt', {
+      url: '/signin_password_prompt',
+      templateUrl: 'signin_password_prompt.html',
+    })
+    .state('app', {
+      url: '/app',
+      templateUrl: 'app.html',
+      resolve: requireAuthed,
+    })
+    .state('signin_setup', {
+      url: '/signin_setup',
+      templateUrl: 'signin_setup.html',
+      resolve: requireAuthed,
+    })
+    .state('signin_with_token', {
+      url: '/signin_with_token/:token',
+      resolve: {
+        email: function(Data, $stateParams) {
+          return Data.consumeToken($stateParams.token);
+        },
+        controller: function($state, $stateParams, Data, email) {
+          Data.customer = Data.customers[email];
+          Data.customer.verified_email = true;
+          if (Data.customer.has_setup) {
+            $state.go('app');
+          } else {
+            $state.go('signin_setup');
+          }
+        }
+      }
+    })
+});
+
+app.factory('Data', function() {
+  var Data = {
+    email: null,
+    customer: null,
+    customers: {},
+    tokens: {},
+    last_remembered: null,
+    email_messages: [],
+  };
+
+  Data.generateToken = function(data) {
+    var token = _.sample('ABCDEFGHJKMNPQRSTUVWXYZ', 10).join('');
+    Data.tokens[token] = data;
+    return token;
+  }
+  Data.consumeToken = function(token) {
+    var data = Data.tokens[token];
+    delete Data.tokens[token];
+    return data;
+  }
+
+  Data.rememberCustomer = function(customer) {
+    customer.rememberme = true;
+    Data.last_remembered = customer;
+  }
+  return Data;
+});
+
+app.controller('MainCtrl', function(Data, $state, $sce) {
+  var main = this;
+  main.Data = Data;
+
+  main.sendEmail = function(to_email, subject, body) {
+    main.Data.email_messages.unshift({
+      to_email: to_email,
+      subject: subject,
+      body: $sce.trustAsHtml(body),
+    })
+  }
+
+  main.signin = function(email) {
+    if (Data.customers[email]) {
+      // already registered
+      Data.email = email;
+      if (Data.customers[email].rememberme) {
+        // simulate remembering
+        Data.customer = Data.customers[email];
+        $state.go('app');
+      } else {
+        // must authenticate
+        if (Data.customers[email].has_password) {
+          // prompt for password
+          $state.go('signin_password_prompt');
+        } else {
+          // password-less
+          var token = Data.generateToken(email);
+          var href = $state.href('signin_with_token', {
+            token: token,
+          });
+          main.sendEmail(email, 'Finish signing in',
+            "To sign in click this link: <a href=\""+href+"\">" + href + "</a>, " +
+            "or if you don't trust clicking links, use this Access Token on the page asking " +
+            "for a token: " + token);
+          $state.go('signin_sent_email');
+        }
+      }
+    } else {
+      // not registered yet
+      Data.customers[email] = {
+        email: email,
+        verified_email: false,
+        has_setup: false,
+        has_password: false,
+        password_text: null,
+      }
+      Data.customer = Data.customers[email];
+      main.sendEmail(email, 'Welcome',
+        "You just signed up for this thing.  Isn't it nice that you didn't have to " +
+        "choose a password?");
+      $state.go('app');
+    }
+  }
+
+  main.signinWithPassword = function(email, password) {
+    var customer = Data.customers[email];
+    if (customer.has_password && customer.password_text === password) {
+      Data.customer = customer;
+      $state.go('app');
+    } else {
+      $state.go('signin_password_prompt');
+    }
+  }
+
+  main.chooseNoPassword = function() {
+    Data.customer.has_setup = true;
+    Data.customer.has_password = false;
+    $state.go('app');
+  }
+
+  main.setPassword = function(password) {
+    Data.customer.has_setup = true;
+    Data.customer.has_password = true;
+    Data.customer.password_text = password; // XXX this is not secure, obviously.
+    $state.go('app');
+  }
+
+  main.signout = function() {
+    console.log('sigining out');
+    Data.customer = null;
+    $state.go('landing');
+  }
+
+  return main;
+});
+</script>
+  </body>
+</html>
